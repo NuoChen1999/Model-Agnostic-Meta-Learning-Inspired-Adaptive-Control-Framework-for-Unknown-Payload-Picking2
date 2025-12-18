@@ -197,38 +197,19 @@ def main():
 
         s = e_dot + beta * e # 7x1
 
-        # P = 0.5 * np.eye(7) # P for model 1
-        # R = 0.5 * np.eye(7) # R for model 1
         P = 10 * np.eye(7)
         R = 0.1 * np.eye(7)
         a_hat_update = P @ phi @ s - P @ phi @ np.linalg.inv(R) @ (phi @ a.reshape(7, 1) - y) #- 10 * a.reshape(7, 1)
         a = a.reshape(7, 1) + a_hat_update * dt
-        # a = a / np.linalg.norm(a)
-        # print('joint_states:', joint_states)
-        # print('q:', q)
-        # print('q_dot:', q_dot)
-        # print('s:', s)
-        # print('e:', e)
-        # print('e_dot:', e_dot)
-        # print('M:', M)
-        # print('y_pred:', y_pred.detach().numpy())
-        # print('a_hat_update:',a_hat_update)
-        # print('a:', a)
 
         pd_torques = Kp[0] * e + Kd_pd[0] * e_dot
-        # print(pd_torques.shape)
-        # final_torques = np.array(MCG).reshape(7, 1) + pd_torques.reshape(7, 1)
-        # final_torques = np.array(Cq_dot_plus_G_full)[:7] + np.array(neural_torque.detach().numpy())[0] + pd_torques
-        # final_torques = (Cq_dot_plus_G.reshape(7, 1) - np.array(neural_torque).reshape(7, 1)
-        #                  + M @ (desired_q_ddot[i].reshape(7, 1) - (e_dot / (alpha * beta * (np.sign(e_dot) * (np.abs(e_dot) ** (alpha -1))))).reshape(7, 1) - Kd.reshape(7, 1) * s.T / (alpha * beta * (np.sign(e_dot) * (np.abs(e_dot) ** (alpha -1)))).reshape(7, 1)))
-        # final_torques = (G.reshape(7, 1) - np.array(neural_torque).reshape(7, 1) - Kd @ s
-        #                  + M @ (desired_q_ddot[i].reshape(7, 1) - beta * e_dot)
-        #                  + C_estimated @ (desired_qdot[i].reshape(7, 1) - beta * e))
-        final_torques = (G.reshape(7, 1)  - Kd @ s
+        sm_torques =         s'm_torques = (G.r
+                         + M @ (desired_q_ddot[i].reshape(7, 1) - beta * e_dot)
+                         + C_estimated @ (desired_qdot[i].reshape(7, 1) - beta * e))
+        final_torques = (G.reshape(7, 1) - np.array(neural_torque).reshape(7, 1) - Kd @ s
                          + M @ (desired_q_ddot[i].reshape(7, 1) - beta * e_dot)
                          + C_estimated @ (desired_qdot[i].reshape(7, 1) - beta * e))
         final_torques = final_torques.reshape(7)
-        # print('final_torques:',final_torques)
         error.append(e)
         error_dot.append(e_dot)
         a_history.append(a)
@@ -296,7 +277,7 @@ def main():
     plt.ylabel('Angle Error (rad)', fontsize='25', fontweight='bold')
     plt.xticks([0, 125, 250, 375, 500], fontsize='25')
     plt.yticks([-0.1, 0, 0.1], fontsize='25')
-    plt.title('SM Controller, Trajectory 2', fontsize='30', fontweight='bold')
+    plt.title('Proposed Controller, Trajectory 2', fontsize='30', fontweight='bold')
     plt.xlim(0, 500)
     plt.grid()
     plt.show()
